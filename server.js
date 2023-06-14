@@ -1,25 +1,12 @@
 "use strict";
-const express = require('express');
-const morgan = require('morgan');
-const router = require('./routes');
+require('dotenv').config();
+const { PORT, NODE_ENV } = require('./config');
+const http = require('http');
+const app = require('./app');
 
-const app = express();
-const PORT = 3000;
+const server = http.createServer(app);
 
-app.use(express.json());
-app.use(morgan('tiny'));
-
-app.use((_req, res, next) => {
-  res.header('Access-Control-Allow-Origin', _req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept');
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Expose-Headers', 'set-cookies');
-  next();
-});
-
-app.use('/', router);
-
-app.listen(PORT, () => {
-  console.log(`Listening on PORT ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Environment: ${NODE_ENV}`)
+  console.log(`Server is listening on port ${PORT}!`)
 });
