@@ -2,7 +2,13 @@ const User = require('../../models/schemas/User');
 const { jwtSign } = require('../../lib/auth');
 
 async function getAll(req, res, next) {
-  res.sendStatus(501);
+  try {
+    const users = await User.find({});
+    return res.status(200).json(users);
+  }
+  catch (err) {
+    return next(err);
+  }
 };
 
 async function create(req, res, next) {
@@ -11,8 +17,8 @@ async function create(req, res, next) {
     await user.save();
     return res.status(201).json(user);
   }
-  catch (e) {
-    return next(e);
+  catch (err) {
+    return next(err);
   }
 };
 
