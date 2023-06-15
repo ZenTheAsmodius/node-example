@@ -1,4 +1,5 @@
 const User = require('../../models/schemas/User');
+const { jwtSign } = require('../../lib/auth');
 
 async function getAll(req, res, next) {
   res.sendStatus(501);
@@ -16,7 +17,25 @@ async function create(req, res, next) {
 };
 
 async function login(req, res, next) {
-  res.sendStatus(501);
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    const INVALID_CREDENTIALS = {
+      status: 422,
+      message: 'Invalid credentials',
+    };
+
+    if (!user) return next(INVALID_CREDENTIALS);
+    if (!user.checkPassword(password)) return next(INVALID_CREDENTIALS)
+
+    const access_token = jwtSign(user.getClaims())
+    return res.status(200).json({ access_token })
+  }
+  catch (err) {
+    return next(err)
+  }
 };
 
 async function logout(req, res, next) {

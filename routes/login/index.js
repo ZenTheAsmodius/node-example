@@ -1,7 +1,8 @@
 const usersController = require('../../controllers/users');
+const { useLoginDTO } = require('../../middleware/dtos');
 const router = require('express').Router();
 
 router.route('/')
-  .get(usersController.login);
+  .post(useLoginDTO, usersController.login);
 
 module.exports = router;
