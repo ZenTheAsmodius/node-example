@@ -48,7 +48,7 @@ async function logout(req, res, next) {
   res.sendStatus(501);
 };
 
-async function resetPassword(req, res, next) {
+async function forgotPassword(req, res, next) {
   res.sendStatus(501);
 };
 
@@ -57,5 +57,5 @@ module.exports = {
   create,
   login,
   logout,
-  resetPassword
+  forgotPassword
 };
