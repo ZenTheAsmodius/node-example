@@ -7,5 +7,5 @@ class ForgotPasswordDTO {
 };
 
 module.exports = {
-  LoginDTO: ForgotPasswordDTO,
+  ForgotPasswordDTO,
 };
