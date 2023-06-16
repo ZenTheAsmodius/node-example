@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const path = require('path');
 const router = require('./routes');
 
 const app = express();
@@ -16,6 +17,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.set('view engine', 'hbs');
+
+app.use(express.static(path.join(__dirname, './public')))
+
 app.use('/', router);
 
 // 404 Handler
@@ -28,22 +33,22 @@ app.use((_req, _res, next) => {
 // Error Handler
 app.use((err, _req, res, next) => {
   if (!err.status) {
-    err = Object.assign({}, err, { 
-      message: err.message || undefined 
-    }, { 
-      stack: err.stack || undefined 
-    }, { 
-      status: 500 
+    err = Object.assign({}, err, {
+      message: err.message || undefined
+    }, {
+      stack: err.stack || undefined
+    }, {
+      status: 500
     });
   }
   if (err.status && [401, 403, 404].indexOf(err.status) == -1) {
     console.error(err);
   }
 
-  res.status(err.status).json({ 
+  res.status(err.status).json({
     message: err.message || undefined,
     status: err.status || undefined,
-    errors: err.errors || undefined 
+    errors: err.errors || undefined
   })
 });
 
