@@ -1,5 +1,7 @@
 const User = require('../../models/schemas/User');
 const { jwtSign } = require('../../lib/auth');
+const PasswordRecovery = require('../../models/schemas/PasswordRecovery');
+const { sendForgetPasswordEmail } = require('../../services/mail-service');
 
 async function getAll(req, res, next) {
   try {
@@ -49,7 +51,44 @@ async function logout(req, res, next) {
 };
 
 async function forgotPassword(req, res, next) {
-  res.sendStatus(501);
+  const RECOVERY_LIMIT = 5;
+  try {
+    const { email } = req.body;
+    const [{ count = 0 }] = await User.aggregate([
+      {
+        $match: { email }
+      },
+      {
+        $lookup: {
+          from: 'password-recovery',
+          localField: 'email',
+          foreignField: "email",
+          as: "rec"
+        }
+      },
+      {
+        $project: {
+          count: { $size: "$rec" },
+          _id: 0
+        }
+      }
+    ]).exec();
+
+    if (count > RECOVERY_LIMIT) {
+      return res.sendStatus(429);
+    }
+
+    const passwordRecovery = new PasswordRecovery(req.body);
+
+    await passwordRecovery.save();
+
+    const redirect_uri = `${req.headers.origin}/reset-password?code=${passwordRecovery.code}&id=${passwordRecovery._id}`;
+    sendForgetPasswordEmail(email, redirect_uri);
+    return res.sendStatus(202);
+  }
+  catch (err) {
+    return next(err)
+  }
 };
 
 module.exports = {
