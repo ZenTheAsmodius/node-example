@@ -1,14 +1,23 @@
 const router = require('express').Router();
-const login = require('./login');
-const users = require('./users');
-const forgotPassword = require('./forgot-password');
+const path = require('path');
+const api = require('./api');
 
-router.use('/users', users);
-router.use('/login', login);
-router.use('/forgot-password', forgotPassword);
+router.use('/api', api);
 
-router.route('/').get((_req, res) => res.status(200).json({
-  message: 'Welcome!'
-}));
+router.route('/login').get((_req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'login.html'));
+});
+
+router.route('/forgot-password').get((_req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'forgot-password.html'));
+});
+
+router.route('/reset-password').get((_req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'reset-password.html'));
+});
+
+router.route('/').get((_req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
 
 module.exports = router;

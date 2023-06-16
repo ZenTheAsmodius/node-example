@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta HTTP-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test</title>
+</head>
+
+<body>
+  <h1>Demo</h1>
+
+</body>
+
+<script type="text/javascript">
+  const getClaims = async () => {
+    if (!window.localStorage.getItem('access_token')) {
+      window.location.href = '/login';
+    }
+
+    try {
+      const response = await fetch(`${window.location.origin}/api/users/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.localStorage.getItem('access_token')}`
+        }
+      });
+
+      if (response.status !== 200) {
+        window.location.href = '/login';
+      }
+    }
+    catch (e) {
+      console.error(e)
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await getClaims();
+  });
+  
+</script>
+
+</html>

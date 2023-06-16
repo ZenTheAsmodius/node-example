@@ -1,6 +1,7 @@
 const { LoginDTO } = require('../models/dtos/login');
 const { CreateUserDTO } = require('../models/dtos/users');
 const { ForgotPasswordDTO } = require('../models/dtos/forgot-password');
+const { ResetPasswordDTO } = require('../models/dtos/reset-password');
 
 const useCreateUserDTO = (req, _res, next) => {
   req.body = new CreateUserDTO(req.body);
@@ -17,8 +18,14 @@ const useForgotPasswordDTO = (req, _res, next) => {
   next();
 };
 
+const useResetPasswordDTO = (req, _res, next) => {
+  req.body = new ResetPasswordDTO(req.body);
+  next();
+};
+
 module.exports = {
   useCreateUserDTO,
   useLoginDTO,
-  useForgotPasswordDTO
+  useForgotPasswordDTO,
+  useResetPasswordDTO
 };

@@ -13,6 +13,10 @@ async function getAll(req, res, next) {
   }
 };
 
+async function me(req, res, next) {
+  return res.status(200).json(req.claims)
+}
+
 async function create(req, res, next) {
   const user = new User(req.body);
   try {
@@ -91,10 +95,45 @@ async function forgotPassword(req, res, next) {
   }
 };
 
+async function resetPassword(req, res, next) {
+  try {
+    const { code, _id, password } = req.body;
+
+    const pwRecovery = await PasswordRecovery.findOne({ _id, code });
+
+    if (!pwRecovery) {
+      return next({
+        status: 422,
+        message: 'Invalid entry'
+      });
+    }
+
+    const user = await User.findOne({email: pwRecovery.email});
+    if (!user) {
+      return next({
+        status: 409,
+        message: 'Conflict'
+      });
+    }
+
+    user.password = password;
+    await user.save();
+
+    await PasswordRecovery.deleteMany({email: pwRecovery.email});
+    
+    return res.sendStatus(204);
+  }
+  catch (err) {
+    return next(err)
+  }
+}
+
 module.exports = {
   getAll,
+  me,
   create,
   login,
   logout,
-  forgotPassword
+  forgotPassword,
+  resetPassword
 };
