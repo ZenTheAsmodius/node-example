@@ -20,4 +20,5 @@ const useForgotPasswordDTO = (req, _res, next) => {
 module.exports = {
   useCreateUserDTO,
   useLoginDTO,
+  useForgotPasswordDTO
 };
