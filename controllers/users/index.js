@@ -18,8 +18,14 @@ async function me(req, res, next) {
 }
 
 async function create(req, res, next) {
-  const user = new User(req.body);
   try {
+    const count = await User.countDocuments({ email: req.body.email });
+
+    if (!!count) {
+      return res.sendStatus(409);
+    }
+
+    const user = new User(req.body);
     await user.save();
     return res.status(201).json(user);
   }
@@ -58,7 +64,7 @@ async function forgotPassword(req, res, next) {
   const RECOVERY_LIMIT = 5;
   try {
     const { email } = req.body;
-    const [{ count = 0 }] = await User.aggregate([
+    const result = await User.aggregate([
       {
         $match: { email }
       },
@@ -77,6 +83,12 @@ async function forgotPassword(req, res, next) {
         }
       }
     ]).exec();
+
+    if (!result.length) {
+      return res.sendStatus(409);
+    }
+
+    const count = result[0]?.count ?? 0;
 
     if (count > RECOVERY_LIMIT) {
       return res.sendStatus(429);
@@ -108,7 +120,7 @@ async function resetPassword(req, res, next) {
       });
     }
 
-    const user = await User.findOne({email: pwRecovery.email});
+    const user = await User.findOne({ email: pwRecovery.email });
     if (!user) {
       return next({
         status: 409,
@@ -119,8 +131,8 @@ async function resetPassword(req, res, next) {
     user.password = password;
     await user.save();
 
-    await PasswordRecovery.deleteMany({email: pwRecovery.email});
-    
+    await PasswordRecovery.deleteMany({ email: pwRecovery.email });
+
     return res.sendStatus(204);
   }
   catch (err) {
