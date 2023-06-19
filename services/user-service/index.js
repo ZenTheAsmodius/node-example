@@ -44,13 +44,39 @@ async function getOneByEmail(email = null) {
 
 async function isRegisteredWithEmail(email) {
   try {
-    const count = await User.countDocuments({ email: req.body.email });
+    const count = await User.countDocuments({ email });
 
     return !!count;
   }
   catch (err) {
     throw err;
   }
+}
+
+async function getRecoveryAttemptCountByEmail(email) {
+  const result = await User.aggregate([
+    {
+      $match: { email }
+    },
+    {
+      $lookup: {
+        from: 'password-recovery',
+        localField: 'email',
+        foreignField: "email",
+        as: "rec"
+      }
+    },
+    {
+      $project: {
+        count: { $size: "$rec" },
+        _id: 0
+      }
+    }
+  ]).exec();
+
+  if (!result.length) return null;
+
+  return result[0]?.count ?? 0;
 }
 
 
@@ -60,4 +86,5 @@ module.exports = {
   getOne,
   getOneByEmail,
   isRegisteredWithEmail,
+  getRecoveryAttemptCountByEmail,
 };
