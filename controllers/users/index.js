@@ -5,7 +5,7 @@ const passwordRecoveryService = require('../../services/password-recovery-servic
 
 async function getAll(_req, res, next) {
   try {
-    const users = userService.getList();
+    const users = await userService.getList();
     return res.status(200).json(users);
   }
   catch (err) {
@@ -25,7 +25,7 @@ async function create(req, res, next) {
     if (isRegistered) {
       return res.sendStatus(409);
     }
-    const user = userService.create(req.body);
+    const user = await userService.create(req.body);
 
     return res.status(201).json(user);
   }

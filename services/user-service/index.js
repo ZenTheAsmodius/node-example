@@ -72,7 +72,7 @@ async function getRecoveryAttemptCountByEmail(email) {
         _id: 0
       }
     }
-  ]).exec();
+  ]);
 
   if (!result.length) return null;
 
