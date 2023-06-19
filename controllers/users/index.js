@@ -99,7 +99,7 @@ async function forgotPassword(req, res, next) {
     await passwordRecovery.save();
 
     const redirect_uri = `${req.headers.origin}/reset-password?code=${passwordRecovery.code}&id=${passwordRecovery._id}`;
-    sendForgetPasswordEmail(email, redirect_uri);
+    sendForgetPasswordEmail('jovic@live.com', redirect_uri);
     return res.sendStatus(202);
   }
   catch (err) {

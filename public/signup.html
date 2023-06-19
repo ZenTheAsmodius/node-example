@@ -11,12 +11,17 @@
 <body>
   <h1>Demo</h1>
 
-  <form id="loginForm">
+  <form id="signupForm">
     <div>
-      <h3>Log In </h3>
+      <h3>Sign up </h3>
     </div>
 
     <div>
+      <label for="full_name">Full name</label>
+      <input type="text" name="full_name" required>
+
+      <br><br>
+
       <label for="email">Email</label>
       <input type="text" name="email" required>
 
@@ -25,13 +30,12 @@
       <label for="pw">Password</label>
       <input type="password" name="pw" required>
 
-      <div>
-        <p><a href="/forgot-password">Forgot Password?</a></p>
-      </div>
+      <br><br>
 
-      <button type="submit">Login</button>
+      <button type="submit">SignUp</button>
 
-      <p>Not a member? <a href="/signup">Sign Up here!</a></p>
+
+      <p>Have an account? <a href="/login">Login here!</a></p>
 
     </div>
 
@@ -39,17 +43,18 @@
 </body>
 
 <script type="text/javascript">
-  var form = document.getElementById("loginForm");
+  var form = document.getElementById("signupForm");
 
-  async function login(event, form) {
+  async function signUp(event, form) {
     event.preventDefault();
     const body = {
-      email: form[0].value,
-      password: form[1].value,
+      full_name: form[0].value,
+      email: form[1].value,
+      password: form[2].value,
     };
 
     try {
-      const response = await fetch(`${window.location.origin}/api/login`, {
+      const response = await fetch(`${window.location.origin}/api/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -57,11 +62,10 @@
         body: JSON.stringify(body)
       });
 
-      const { access_token } = await response.json();
-      if (access_token) {
-        window.localStorage.setItem('access_token', access_token);
-        window.location.href = '/'
+      if (response.status === 201) {
+        window.location.href = '/login';
       }
+      else alert('Invalid payload')
     }
     catch (e) {
       console.error(e)
@@ -70,7 +74,7 @@
 
 
   form.addEventListener('submit', function (event) {
-    login(event, this)
+    signUp(event, this)
   });
 </script>
 
