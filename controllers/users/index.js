@@ -1,8 +1,7 @@
-const User = require('../../models/schemas/User');
 const { jwtSign } = require('../../lib/auth');
-const PasswordRecovery = require('../../models/schemas/PasswordRecovery');
 const { sendForgetPasswordEmail } = require('../../services/mail-service');
 const userService = require('../../services/user-service');
+const passwordRecoveryService = require('../../services/password-recovery-service');
 
 async function getAll(_req, res, next) {
   try {
@@ -65,42 +64,21 @@ async function forgotPassword(req, res, next) {
   const RECOVERY_LIMIT = 5;
   try {
     const { email } = req.body;
-    const result = await User.aggregate([
-      {
-        $match: { email }
-      },
-      {
-        $lookup: {
-          from: 'password-recovery',
-          localField: 'email',
-          foreignField: "email",
-          as: "rec"
-        }
-      },
-      {
-        $project: {
-          count: { $size: "$rec" },
-          _id: 0
-        }
-      }
-    ]).exec();
+    const count = await userService.getRecoveryAttemptCountByEmail(email);
 
-    if (!result.length) {
+    if (count === null) {
       return res.sendStatus(409);
     }
-
-    const count = result[0]?.count ?? 0;
 
     if (count > RECOVERY_LIMIT) {
       return res.sendStatus(429);
     }
 
-    const passwordRecovery = new PasswordRecovery(req.body);
-
-    await passwordRecovery.save();
+    const passwordRecovery = await passwordRecoveryService.create(req.body);
 
     const redirect_uri = `${req.headers.origin}/reset-password?code=${passwordRecovery.code}&id=${passwordRecovery._id}`;
-    sendForgetPasswordEmail('jovic@live.com', redirect_uri);
+    sendForgetPasswordEmail(email, redirect_uri);
+    
     return res.sendStatus(202);
   }
   catch (err) {
@@ -112,7 +90,7 @@ async function resetPassword(req, res, next) {
   try {
     const { code, _id, password } = req.body;
 
-    const pwRecovery = await PasswordRecovery.findOne({ _id, code });
+    const pwRecovery = await passwordRecoveryService.getOne({ _id, code });
 
     if (!pwRecovery) {
       return next({
@@ -121,18 +99,15 @@ async function resetPassword(req, res, next) {
       });
     }
 
-    const user = await User.findOne({ email: pwRecovery.email });
+    const user = await userService.getOneByEmail(email);
     if (!user) {
-      return next({
-        status: 409,
-        message: 'Conflict'
-      });
+      return res.sendStatus(409);
     }
 
     user.password = password;
     await user.save();
 
-    await PasswordRecovery.deleteMany({ email: pwRecovery.email });
+    await passwordRecoveryService.clean(pwRecovery.email);
 
     return res.sendStatus(204);
   }

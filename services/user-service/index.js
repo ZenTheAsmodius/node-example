@@ -79,7 +79,6 @@ async function getRecoveryAttemptCountByEmail(email) {
   return result[0]?.count ?? 0;
 }
 
-
 module.exports = {
   create,
   getList,
