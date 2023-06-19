@@ -6,7 +6,7 @@ const createPwRecMock = {
   email: 'name@email.com',
 };
 
-describe('UserService', () => {
+describe('PasswordRecoveryService', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   })
@@ -26,8 +26,8 @@ describe('UserService', () => {
     expect(pwRecovery).toHaveProperty('code');
   })
 
-  it('create - Should Fail if required missing', async () => {
-    jest.spyOn(PasswordRecovery, 'find').mockRejectedValue(new Error('Some error'));
+  it('create - Should Fail on some db error', async () => {
+    jest.spyOn(PasswordRecovery.prototype, 'save').mockRejectedValue(new Error('Some error'));
 
     await expect(
       pwRecoveryService.create(createPwRecMock)
@@ -36,7 +36,7 @@ describe('UserService', () => {
 
   it('getList - Should Return List of Password Recoveries', async () => {
     jest.spyOn(PasswordRecovery, 'find').mockImplementationOnce(() => {
-      return new PasswordRecovery(createPwRecMock)
+      return [new PasswordRecovery(createPwRecMock)]
     });
 
     const pwRecoveries = await pwRecoveryService.getList();
