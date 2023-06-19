@@ -2,10 +2,11 @@ const User = require('../../models/schemas/User');
 const { jwtSign } = require('../../lib/auth');
 const PasswordRecovery = require('../../models/schemas/PasswordRecovery');
 const { sendForgetPasswordEmail } = require('../../services/mail-service');
+const userService = require('../../services/user-service');
 
-async function getAll(req, res, next) {
+async function getAll(_req, res, next) {
   try {
-    const users = await User.find({});
+    const users = userService.getList();
     return res.status(200).json(users);
   }
   catch (err) {
@@ -13,20 +14,20 @@ async function getAll(req, res, next) {
   }
 };
 
-async function me(req, res, next) {
+async function me(req, res) {
   return res.status(200).json(req.claims)
 }
 
 async function create(req, res, next) {
   try {
-    const count = await User.countDocuments({ email: req.body.email });
+    const { email } = req.body;
+    const isRegistered = await userService.isRegisteredWithEmail(email);
 
-    if (!!count) {
+    if (isRegistered) {
       return res.sendStatus(409);
     }
+    const user = userService.create(req.body);
 
-    const user = new User(req.body);
-    await user.save();
     return res.status(201).json(user);
   }
   catch (err) {
@@ -38,7 +39,7 @@ async function login(req, res, next) {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await userService.getOneByEmail(email);
 
     const INVALID_CREDENTIALS = {
       status: 422,
